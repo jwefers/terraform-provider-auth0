@@ -68,7 +68,7 @@ build: ## Build the provider binary. Usage: "make build VERSION=0.2.0"
 	then \
 	  echo "Please provide a version. Example: make build VERSION=0.2.0" && exit 1; \
  	fi
-	@go build -v -ldflags "-X github.com/auth0/terraform-provider-auth0/internal/config.version=${VERSION}" -o "${BUILD_DIR}/${BINARY}_v$(VERSION)"
+	@go build -v -ldflags "-X github.com/auth0/terraform-provider-auth0/pkg/config.version=${VERSION}" -o "${BUILD_DIR}/${BINARY}_v$(VERSION)"
 
 install: build ## Install the provider as a terraform plugin. Usage: "make install VERSION=0.2.0"
 	@mkdir -p "${HOME}/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/$(VERSION)/${GO_OS}_${GO_ARCH}"
@@ -155,7 +155,7 @@ test-sweep: ## Clean up test tenant
 	${call print_warning, "WARNING: This will destroy infrastructure. Use only in development accounts."}
 	@read -p "Continue? [y/N] " ans && ans=$${ans:-N} ; \
 	if [ $${ans} = y ] || [ $${ans} = Y ]; then \
-		go test ./internal/acctest/sweep -v -sweep="${AUTH0_DOMAIN}" $(SWEEPARGS) ; \
+		go test ./pkg/acctest/sweep -v -sweep="${AUTH0_DOMAIN}" $(SWEEPARGS) ; \
 	fi
 
 #-----------------------------------------------------------------------------------------------------------------------
