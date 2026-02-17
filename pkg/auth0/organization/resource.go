@@ -4,13 +4,13 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/auth0/commons"
+	"github.com/jwefers/terraform-provider-auth0/pkg/auth0/commons"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/config"
-	internalError "github.com/auth0/terraform-provider-auth0/pkg/error"
+	"github.com/jwefers/terraform-provider-auth0/pkg/config"
+	internalError "github.com/jwefers/terraform-provider-auth0/pkg/error"
 )
 
 // NewResource will return a new auth0_organization resource.

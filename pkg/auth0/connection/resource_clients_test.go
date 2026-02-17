@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/acctest"
+	"github.com/jwefers/terraform-provider-auth0/pkg/acctest"
 )
 
 func TestAccConnectionClientsPreventErasingEnabledClientsOnCreate(t *testing.T) {

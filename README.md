@@ -1,12 +1,12 @@
 <div align="center">
   <h1>Auth0 Terraform Provider</h1>
 
-[![GoDoc](https://pkg.go.dev/badge/github.com/auth0/terraform-provider-auth0.svg)](https://pkg.go.dev/github.com/auth0/terraform-provider-auth0)
-[![Go Report Card](https://goreportcard.com/badge/github.com/auth0/terraform-provider-auth0?style=flat-square)](https://goreportcard.com/report/github.com/auth0/terraform-provider-auth0)
-[![Release](https://img.shields.io/github/v/release/auth0/terraform-provider-auth0?logo=terraform&include_prereleases&style=flat-square)](https://github.com/auth0/terraform-provider-auth0/releases)
+[![GoDoc](https://pkg.go.dev/badge/github.com/jwefers/terraform-provider-auth0.svg)](https://pkg.go.dev/github.com/jwefers/terraform-provider-auth0)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jwefers/terraform-provider-auth0?style=flat-square)](https://goreportcard.com/report/github.com/jwefers/terraform-provider-auth0)
+[![Release](https://img.shields.io/github/v/release/auth0/terraform-provider-auth0?logo=terraform&include_prereleases&style=flat-square)](https://github.com/jwefers/terraform-provider-auth0/releases)
 [![Codecov](https://img.shields.io/codecov/c/github/auth0/terraform-provider-auth0?logo=codecov&style=flat-square)](https://codecov.io/gh/auth0/terraform-provider-auth0)
-[![License](https://img.shields.io/github/license/auth0/terraform-provider-auth0.svg?logo=fossa&style=flat-square)](https://github.com/auth0/terraform-provider-auth0/blob/main/LICENSE)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/auth0/terraform-provider-auth0/main.yml?branch=main)](https://github.com/auth0/terraform-provider-auth0/actions?query=branch%3Amain)
+[![License](https://img.shields.io/github/license/auth0/terraform-provider-auth0.svg?logo=fossa&style=flat-square)](https://github.com/jwefers/terraform-provider-auth0/blob/main/LICENSE)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/auth0/terraform-provider-auth0/main.yml?branch=main)](https://github.com/jwefers/terraform-provider-auth0/actions?query=branch%3Amain)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/auth0/terraform-provider-auth0)
 
 </div>
@@ -69,7 +69,7 @@ We appreciate feedback and contribution to this repo! Before you get started, pl
 
 ### Raise an issue
 
-To provide feedback or report a bug, [please raise an issue on our issue tracker](https://github.com/auth0/terraform-provider-auth0/issues).
+To provide feedback or report a bug, [please raise an issue on our issue tracker](https://github.com/jwefers/terraform-provider-auth0/issues).
 
 ### Vulnerability reporting
 

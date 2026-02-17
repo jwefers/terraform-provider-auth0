@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/config"
-	"github.com/auth0/terraform-provider-auth0/pkg/value"
+	"github.com/jwefers/terraform-provider-auth0/pkg/config"
+	"github.com/jwefers/terraform-provider-auth0/pkg/value"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"

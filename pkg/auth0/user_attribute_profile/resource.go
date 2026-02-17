@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/config"
-	internalError "github.com/auth0/terraform-provider-auth0/pkg/error"
+	"github.com/jwefers/terraform-provider-auth0/pkg/config"
+	internalError "github.com/jwefers/terraform-provider-auth0/pkg/error"
 )
 
 // NewResource will return a new auth0_user_attribute_profile resource.

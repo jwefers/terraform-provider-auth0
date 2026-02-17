@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"gopkg.in/dnaeon/go-vcr.v3/recorder"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/config"
-	"github.com/auth0/terraform-provider-auth0/pkg/provider"
+	"github.com/jwefers/terraform-provider-auth0/pkg/config"
+	"github.com/jwefers/terraform-provider-auth0/pkg/provider"
 )
 
 // Test checks to see if http recordings are enabled and runs the tests

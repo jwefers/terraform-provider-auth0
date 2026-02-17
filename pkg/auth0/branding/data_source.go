@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	internalSchema "github.com/auth0/terraform-provider-auth0/pkg/schema"
+	internalSchema "github.com/jwefers/terraform-provider-auth0/pkg/schema"
 )
 
 // NewDataSource will return a new auth0_branding data source.

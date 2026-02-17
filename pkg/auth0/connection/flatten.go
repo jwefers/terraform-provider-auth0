@@ -141,7 +141,7 @@ func flattenConnectionOptions(data *schema.ResourceData, connection *management.
 				Summary:  "Unsupported Connection Strategy",
 				Detail: fmt.Sprintf(
 					"Raise an issue at %s in order to have the following connection strategy supported: %q",
-					"https://github.com/auth0/terraform-provider-auth0/issues/new",
+					"https://github.com/jwefers/terraform-provider-auth0/issues/new",
 					connection.GetStrategy(),
 				),
 				AttributePath: cty.Path{cty.GetAttrStep{Name: "strategy"}},

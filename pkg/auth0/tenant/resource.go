@@ -15,10 +15,10 @@ import (
 
 	"github.com/auth0/go-auth0/management"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/auth0/commons"
-	"github.com/auth0/terraform-provider-auth0/pkg/config"
-	internalValidation "github.com/auth0/terraform-provider-auth0/pkg/validation"
-	"github.com/auth0/terraform-provider-auth0/pkg/value"
+	"github.com/jwefers/terraform-provider-auth0/pkg/auth0/commons"
+	"github.com/jwefers/terraform-provider-auth0/pkg/config"
+	internalValidation "github.com/jwefers/terraform-provider-auth0/pkg/validation"
+	"github.com/jwefers/terraform-provider-auth0/pkg/value"
 )
 
 const (

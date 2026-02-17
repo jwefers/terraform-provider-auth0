@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/config"
+	"github.com/jwefers/terraform-provider-auth0/pkg/config"
 )
 
 // NewConnectionProfileResource will return a new auth0_connection_profile resource.

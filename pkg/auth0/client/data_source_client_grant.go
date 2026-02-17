@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/config"
+	"github.com/jwefers/terraform-provider-auth0/pkg/config"
 
 	"github.com/auth0/go-auth0/management"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"

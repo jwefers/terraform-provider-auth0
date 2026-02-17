@@ -18,13 +18,13 @@ body:
     attributes:
       label: Checklist
       options:
-        - label: I have looked into the [README](https://github.com/auth0/terraform-provider-auth0#readme) and have not found a suitable solution or answer.
+        - label: I have looked into the [README](https://github.com/jwefers/terraform-provider-auth0#readme) and have not found a suitable solution or answer.
           required: true
         - label: I have looked into the [documentation](https://registry.terraform.io/providers/auth0/auth0/latest/docs) and have not found a suitable solution or answer.
           required: true
-        - label: I have searched the [issues](https://github.com/auth0/terraform-provider-auth0/issues) and have not found a suitable solution or answer.
+        - label: I have searched the [issues](https://github.com/jwefers/terraform-provider-auth0/issues) and have not found a suitable solution or answer.
           required: true
-        - label: I have upgraded to the [latest version](https://github.com/auth0/terraform-provider-auth0/releases/latest) of this provider and the issue still persists.
+        - label: I have upgraded to the [latest version](https://github.com/jwefers/terraform-provider-auth0/releases/latest) of this provider and the issue still persists.
           required: true
         - label: I have searched the [Auth0 Community](https://community.auth0.com/c/sdks/5) forums and have not found a suitable solution or answer.
           required: true

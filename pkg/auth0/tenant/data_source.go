@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/config"
-	internalSchema "github.com/auth0/terraform-provider-auth0/pkg/schema"
+	"github.com/jwefers/terraform-provider-auth0/pkg/config"
+	internalSchema "github.com/jwefers/terraform-provider-auth0/pkg/schema"
 )
 
 // NewDataSource will return a new auth0_tenant data source.

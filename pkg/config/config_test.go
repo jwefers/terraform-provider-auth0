@@ -14,10 +14,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zalando/go-keyring"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/config"
-	"github.com/auth0/terraform-provider-auth0/pkg/provider"
+	"github.com/jwefers/terraform-provider-auth0/pkg/config"
+	"github.com/jwefers/terraform-provider-auth0/pkg/provider"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/mutex"
+	"github.com/jwefers/terraform-provider-auth0/pkg/mutex"
 )
 
 func TestConfigureProvider(t *testing.T) {

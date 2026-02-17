@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/config"
-	internalError "github.com/auth0/terraform-provider-auth0/pkg/error"
-	internalSchema "github.com/auth0/terraform-provider-auth0/pkg/schema"
+	"github.com/jwefers/terraform-provider-auth0/pkg/config"
+	internalError "github.com/jwefers/terraform-provider-auth0/pkg/error"
+	internalSchema "github.com/jwefers/terraform-provider-auth0/pkg/schema"
 )
 
 const languagesURL = "https://cdn.auth0.com/ulp/react-components/development/languages/available-languages.json"

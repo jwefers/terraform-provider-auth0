@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/value"
+	"github.com/jwefers/terraform-provider-auth0/pkg/value"
 )
 
 var expandConnectionOptionsMap = map[string]expandConnectionOptionsFunc{
@@ -183,7 +183,7 @@ func expandConnectionOptions(data *schema.ResourceData, strategy string) (interf
 				Summary:  "Unsupported Connection Strategy",
 				Detail: fmt.Sprintf(
 					"Raise an issue at %s in order to have the following connection strategy supported: %q",
-					"https://github.com/auth0/terraform-provider-auth0/issues/new",
+					"https://github.com/jwefers/terraform-provider-auth0/issues/new",
 					strategy,
 				),
 				AttributePath: cty.Path{cty.GetAttrStep{Name: "strategy"}},

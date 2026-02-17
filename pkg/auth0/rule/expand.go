@@ -4,7 +4,7 @@ import (
 	"github.com/auth0/go-auth0/management"
 	"github.com/hashicorp/go-cty/cty"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/value"
+	"github.com/jwefers/terraform-provider-auth0/pkg/value"
 )
 
 func expandRule(data cty.Value) *management.Rule {

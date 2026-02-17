@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/auth0/commons"
-	"github.com/auth0/terraform-provider-auth0/pkg/value"
+	"github.com/jwefers/terraform-provider-auth0/pkg/auth0/commons"
+	"github.com/jwefers/terraform-provider-auth0/pkg/value"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 

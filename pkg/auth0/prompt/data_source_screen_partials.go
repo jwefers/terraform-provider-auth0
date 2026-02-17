@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/config"
-	internalSchema "github.com/auth0/terraform-provider-auth0/pkg/schema"
+	"github.com/jwefers/terraform-provider-auth0/pkg/config"
+	internalSchema "github.com/jwefers/terraform-provider-auth0/pkg/schema"
 )
 
 // NewPromptScreenPartialsDataSource creates a new data source to retrieve a specific Auth0 prompt screen partials by `prompt_type`.

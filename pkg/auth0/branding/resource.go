@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/config"
-	internalError "github.com/auth0/terraform-provider-auth0/pkg/error"
-	internalValidation "github.com/auth0/terraform-provider-auth0/pkg/validation"
+	"github.com/jwefers/terraform-provider-auth0/pkg/config"
+	internalError "github.com/jwefers/terraform-provider-auth0/pkg/error"
+	internalValidation "github.com/jwefers/terraform-provider-auth0/pkg/validation"
 )
 
 var errNoCustomDomain = fmt.Errorf(

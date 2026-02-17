@@ -6,7 +6,7 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - '-s -w -X github.com/auth0/terraform-provider-auth0/pkg/config.version={{.Version}}'
+      - '-s -w -X github.com/jwefers/terraform-provider-auth0/pkg/config.version={{.Version}}'
     goos:
       - freebsd
       - windows

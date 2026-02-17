@@ -29,7 +29,7 @@ linters-settings:
     capital: true
     period: true
   goimports:
-    local-prefixes: "github.com/auth0/terraform-provider-auth0"
+    local-prefixes: "github.com/jwefers/terraform-provider-auth0"
   gocyclo:
     min-complexity: 30 # This is the default but our goal is to take this down to 15.
 

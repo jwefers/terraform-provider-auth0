@@ -6,8 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/config"
-	internalError "github.com/auth0/terraform-provider-auth0/pkg/error"
+	"github.com/jwefers/terraform-provider-auth0/pkg/config"
+	internalError "github.com/jwefers/terraform-provider-auth0/pkg/error"
 )
 
 // NewConfigResource will return a new auth0_rule_config resource.

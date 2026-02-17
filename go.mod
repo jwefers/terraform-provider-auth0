@@ -1,4 +1,4 @@
-module github.com/auth0/terraform-provider-auth0
+module github.com/jwefers/terraform-provider-auth0
 
 go 1.24.0
 

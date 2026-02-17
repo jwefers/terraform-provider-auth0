@@ -3,14 +3,14 @@ package client
 import (
 	"fmt"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/auth0/commons"
+	"github.com/jwefers/terraform-provider-auth0/pkg/auth0/commons"
 
 	"github.com/auth0/go-auth0"
 	"github.com/auth0/go-auth0/management"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/value"
+	"github.com/jwefers/terraform-provider-auth0/pkg/value"
 )
 
 func expandClient(data *schema.ResourceData) (*management.Client, error) {

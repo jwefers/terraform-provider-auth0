@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/acctest"
+	"github.com/jwefers/terraform-provider-auth0/pkg/acctest"
 )
 
 func TestAccSSOCustomText(t *testing.T) {

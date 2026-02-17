@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	internalError "github.com/auth0/terraform-provider-auth0/pkg/error"
-	"github.com/auth0/terraform-provider-auth0/pkg/value"
+	internalError "github.com/jwefers/terraform-provider-auth0/pkg/error"
+	"github.com/jwefers/terraform-provider-auth0/pkg/value"
 )
 
 func expandAction(data *schema.ResourceData) *management.Action {

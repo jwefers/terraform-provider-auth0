@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/auth0/commons"
+	"github.com/jwefers/terraform-provider-auth0/pkg/auth0/commons"
 )
 
 func flattenOrganization(data *schema.ResourceData, organization *management.Organization) error {

@@ -3,7 +3,7 @@ package riskassessment
 import (
 	"context"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/value"
+	"github.com/jwefers/terraform-provider-auth0/pkg/value"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -11,7 +11,7 @@ import (
 
 	"github.com/auth0/go-auth0/management"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/config"
+	"github.com/jwefers/terraform-provider-auth0/pkg/config"
 )
 
 // NewResource will return a new auth0_risk_assessments resource.

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/pkg/value"
+	"github.com/jwefers/terraform-provider-auth0/pkg/value"
 )
 
 func expandLogStream(data *schema.ResourceData) *management.LogStream {
@@ -69,7 +69,7 @@ func expandLogStream(data *schema.ResourceData) *management.LogStream {
 		default:
 			log.Printf("[WARN]: Unsupported log stream sink %s", logStream.GetType())
 			log.Printf("[WARN]: Raise an issue with the Auth0 provider in order to support it:")
-			log.Printf("[WARN]: 	https://github.com/auth0/terraform-provider-auth0/issues/new")
+			log.Printf("[WARN]: 	https://github.com/jwefers/terraform-provider-auth0/issues/new")
 		}
 
 		return stop
