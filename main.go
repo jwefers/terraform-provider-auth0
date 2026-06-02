@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 
-	"github.com/auth0/terraform-provider-auth0/internal/provider"
+	"github.com/auth0/terraform-provider-auth0/pkg/provider"
 )
 
 // Ensure the documentation is formatted properly.
