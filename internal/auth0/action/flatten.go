@@ -15,6 +15,7 @@ func flattenAction(data *schema.ResourceData, action *management.Action) error {
 		data.Set("runtime", action.GetRuntime()),
 		data.Set("modules", flattenActionModulesForAction(data, action.GetModules())),
 		data.Set("status", action.GetStatus()),
+		data.Set("secrets", flattenSecrets(action.GetSecrets())),
 	)
 
 	if action.GetRuntime() == "node18-actions" {
@@ -121,4 +122,19 @@ func flattenTriggerBindingActions(bindings []*management.ActionBinding) []interf
 	}
 
 	return triggerBindingActions
+}
+
+func flattenSecrets(secrets []management.ActionSecret) []interface{} {
+	var actionSecrets []interface{}
+
+	for _, secret := range secrets {
+		actionSecrets = append(
+			actionSecrets,
+			map[string]interface{}{
+				"name": secret.GetName(),
+			},
+		)
+	}
+
+	return actionSecrets
 }
