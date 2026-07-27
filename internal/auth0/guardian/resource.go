@@ -312,7 +312,7 @@ func NewResource() *schema.Resource {
 			"recovery_code": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
 				Description: "Indicates whether recovery code MFA is enabled.",
 			},
 			"duo": {
