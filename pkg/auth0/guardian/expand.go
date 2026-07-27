@@ -50,8 +50,12 @@ func updateRecoveryCodeFactor(ctx context.Context, data *schema.ResourceData, ap
 		return nil
 	}
 
-	enabled := data.Get("recovery_code").(bool)
-	return api.Guardian.MultiFactor.RecoveryCode.Enable(ctx, enabled)
+	enabled, isSet := data.GetOk("recovery_code")
+	if isSet {
+		return api.Guardian.MultiFactor.RecoveryCode.Enable(ctx, enabled.(bool))
+	} else {
+		return nil
+	}
 }
 
 func updatePhoneFactor(ctx context.Context, data *schema.ResourceData, api *management.Management) error {
