@@ -55,7 +55,8 @@ func NewResource() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"policy": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{
 						"all-applications",
@@ -289,7 +290,7 @@ func NewResource() *schema.Resource {
 			"email": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
 				Description: "Indicates whether email MFA is enabled.",
 			},
 			"email_settings": {
@@ -306,7 +307,7 @@ func NewResource() *schema.Resource {
 			"otp": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
 				Description: "Indicates whether one time password MFA is enabled.",
 			},
 			"recovery_code": {
