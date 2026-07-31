@@ -20,13 +20,18 @@ func updatePolicy(ctx context.Context, data *schema.ResourceData, api *managemen
 
 	multiFactorPolicies := management.MultiFactorPolicies{}
 
-	policy := data.Get("policy").(string)
-	if policy != "never" {
-		multiFactorPolicies = append(multiFactorPolicies, policy)
-	}
+	policy, isSet := data.GetOk("policy")
+	if isSet {
 
-	// If the policy is "never" then the slice needs to be empty.
-	return api.Guardian.MultiFactor.UpdatePolicy(ctx, &multiFactorPolicies)
+		if policy != "never" {
+			multiFactorPolicies = append(multiFactorPolicies, policy.(string))
+		}
+
+		// If the policy is "never" then the slice needs to be empty.
+		return api.Guardian.MultiFactor.UpdatePolicy(ctx, &multiFactorPolicies)
+	} else {
+		return nil
+	}
 }
 
 func updateEmailFactor(ctx context.Context, data *schema.ResourceData, api *management.Management) error {
@@ -34,8 +39,11 @@ func updateEmailFactor(ctx context.Context, data *schema.ResourceData, api *mana
 		return nil
 	}
 
-	enabled := data.Get("email").(bool)
-	return api.Guardian.MultiFactor.Email.Enable(ctx, enabled)
+	enabled, isSet := data.GetOk("email")
+	if isSet {
+		return api.Guardian.MultiFactor.Email.Enable(ctx, enabled.(bool))
+	}
+	return nil
 }
 
 func updateOTPFactor(ctx context.Context, data *schema.ResourceData, api *management.Management) error {
@@ -43,8 +51,11 @@ func updateOTPFactor(ctx context.Context, data *schema.ResourceData, api *manage
 		return nil
 	}
 
-	enabled := data.Get("otp").(bool)
-	return api.Guardian.MultiFactor.OTP.Enable(ctx, enabled)
+	enabled, isSet := data.GetOk("otp")
+	if isSet {
+		return api.Guardian.MultiFactor.OTP.Enable(ctx, enabled.(bool))
+	}
+	return nil
 }
 
 func updateRecoveryCodeFactor(ctx context.Context, data *schema.ResourceData, api *management.Management) error {
