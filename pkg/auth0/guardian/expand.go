@@ -1,0 +1,526 @@
+package guardian
+
+import (
+	"context"
+	"errors"
+
+	"github.com/auth0/go-auth0/management"
+	managementv3 "github.com/auth0/go-auth0/v3/management"
+	managementv3client "github.com/auth0/go-auth0/v3/management/client"
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/auth0/terraform-provider-auth0/pkg/value"
+)
+
+func updatePolicy(ctx context.Context, data *schema.ResourceData, api *management.Management) error {
+	if !data.HasChange("policy") {
+		return nil
+	}
+
+	multiFactorPolicies := management.MultiFactorPolicies{}
+
+	policy, isSet := data.GetOk("policy")
+	if isSet {
+
+		if policy != "never" {
+			multiFactorPolicies = append(multiFactorPolicies, policy.(string))
+		}
+
+		// If the policy is "never" then the slice needs to be empty.
+		return api.Guardian.MultiFactor.UpdatePolicy(ctx, &multiFactorPolicies)
+	} else {
+		return nil
+	}
+}
+
+func updateEmailFactor(ctx context.Context, data *schema.ResourceData, api *management.Management) error {
+	if !data.HasChange("email") {
+		return nil
+	}
+
+	enabled, isSet := data.GetOk("email")
+	if isSet {
+		return api.Guardian.MultiFactor.Email.Enable(ctx, enabled.(bool))
+	}
+	return nil
+}
+
+func updateOTPFactor(ctx context.Context, data *schema.ResourceData, api *management.Management) error {
+	if !data.HasChange("otp") {
+		return nil
+	}
+
+	enabled, isSet := data.GetOk("otp")
+	if isSet {
+		return api.Guardian.MultiFactor.OTP.Enable(ctx, enabled.(bool))
+	}
+	return nil
+}
+
+func updateRecoveryCodeFactor(ctx context.Context, data *schema.ResourceData, api *management.Management) error {
+	if !data.HasChange("recovery_code") {
+		return nil
+	}
+
+	enabled, isSet := data.GetOk("recovery_code")
+	if isSet {
+		return api.Guardian.MultiFactor.RecoveryCode.Enable(ctx, enabled.(bool))
+	} else {
+		return nil
+	}
+}
+
+func updatePhoneFactor(ctx context.Context, data *schema.ResourceData, api *management.Management) error {
+	if !data.HasChange("phone") {
+		return nil
+	}
+
+	enabled := data.Get("phone.0.enabled").(bool)
+
+	// Always enable phone factor before configuring it.
+	// Otherwise, we encounter an error with message_types.
+	if err := api.Guardian.MultiFactor.Phone.Enable(ctx, enabled); err != nil {
+		return err
+	}
+	if !enabled {
+		return nil
+	}
+
+	return configurePhone(ctx, data.GetRawConfig(), api)
+}
+
+func configurePhone(ctx context.Context, config cty.Value, api *management.Management) error {
+	var err error
+
+	pceEnabled, err := isPhoneConsolidatedExperienceEnabled(ctx, api)
+	if err != nil {
+		return err
+	}
+
+	config.GetAttr("phone").ForEachElement(func(_ cty.Value, phone cty.Value) (stop bool) {
+		// Provider and options are only valid when the phone consolidated experience is disabled.
+		if pceEnabled {
+			if !phone.GetAttr("provider").IsNull() || phone.GetAttr("options").LengthInt() != 0 {
+				err = errors.New("provider or options cannot be specified when phone consolidated experience is enabled for tenant")
+				return true
+			}
+		} else {
+			mfaProvider := &management.MultiFactorProvider{
+				Provider: value.String(phone.GetAttr("provider")),
+			}
+			if err = api.Guardian.MultiFactor.Phone.UpdateProvider(ctx, mfaProvider); err != nil {
+				return true
+			}
+
+			options := phone.GetAttr("options")
+			switch mfaProvider.GetProvider() {
+			case "twilio":
+				if err = updateTwilioOptions(ctx, options, api); err != nil {
+					return true
+				}
+			case "auth0", "phone-message-hook":
+				if err = updateAuth0Options(ctx, options, api); err != nil {
+					return true
+				}
+			}
+		}
+
+		messageTypes := &management.PhoneMessageTypes{
+			MessageTypes: value.Strings(phone.GetAttr("message_types")),
+		}
+		if err = api.Guardian.MultiFactor.Phone.UpdateMessageTypes(ctx, messageTypes); err != nil {
+			return true
+		}
+
+		return stop
+	})
+
+	return err
+}
+
+func updateAuth0Options(ctx context.Context, options cty.Value, api *management.Management) error {
+	var err error
+
+	options.ForEachElement(func(_ cty.Value, config cty.Value) (stop bool) {
+		err = api.Guardian.MultiFactor.SMS.UpdateTemplate(
+			ctx,
+			&management.MultiFactorSMSTemplate{
+				EnrollmentMessage:   value.String(config.GetAttr("enrollment_message")),
+				VerificationMessage: value.String(config.GetAttr("verification_message")),
+			},
+		)
+
+		return stop
+	})
+
+	return err
+}
+
+func updateTwilioOptions(ctx context.Context, options cty.Value, api *management.Management) error {
+	var err error
+
+	options.ForEachElement(func(_ cty.Value, config cty.Value) (stop bool) {
+		if err = api.Guardian.MultiFactor.SMS.UpdateTwilio(
+			ctx,
+			&management.MultiFactorProviderTwilio{
+				From:                value.String(config.GetAttr("from")),
+				MessagingServiceSid: value.String(config.GetAttr("messaging_service_sid")),
+				AuthToken:           value.String(config.GetAttr("auth_token")),
+				SID:                 value.String(config.GetAttr("sid")),
+			},
+		); err != nil {
+			return true
+		}
+
+		if err = api.Guardian.MultiFactor.SMS.UpdateTemplate(
+			ctx,
+			&management.MultiFactorSMSTemplate{
+				EnrollmentMessage:   value.String(config.GetAttr("enrollment_message")),
+				VerificationMessage: value.String(config.GetAttr("verification_message")),
+			},
+		); err != nil {
+			return true
+		}
+
+		return stop
+	})
+
+	return err
+}
+
+func updateWebAuthnRoaming(ctx context.Context, data *schema.ResourceData, api *management.Management) error {
+	if !data.HasChange("webauthn_roaming") {
+		return nil
+	}
+
+	enabled := data.Get("webauthn_roaming.0.enabled").(bool)
+	if err := api.Guardian.MultiFactor.WebAuthnRoaming.Enable(ctx, enabled); err != nil {
+		return err
+	}
+	if !enabled {
+		return nil
+	}
+
+	var err error
+	data.GetRawConfig().GetAttr("webauthn_roaming").ForEachElement(func(_ cty.Value, config cty.Value) (stop bool) {
+		webAuthnSettings := &management.MultiFactorWebAuthnSettings{
+			UserVerification:       value.String(config.GetAttr("user_verification")),
+			OverrideRelyingParty:   value.Bool(config.GetAttr("override_relying_party")),
+			RelyingPartyIdentifier: value.String(config.GetAttr("relying_party_identifier")),
+		}
+
+		if webAuthnSettings.String() != "{}" {
+			err = api.Guardian.MultiFactor.WebAuthnRoaming.Update(ctx, webAuthnSettings)
+		}
+
+		return stop
+	})
+
+	return err
+}
+
+func updateWebAuthnPlatform(ctx context.Context, data *schema.ResourceData, api *management.Management) error {
+	if !data.HasChange("webauthn_platform") {
+		return nil
+	}
+
+	enabled := data.Get("webauthn_platform.0.enabled").(bool)
+	if err := api.Guardian.MultiFactor.WebAuthnPlatform.Enable(ctx, enabled); err != nil {
+		return err
+	}
+	if !enabled {
+		return nil
+	}
+
+	var err error
+	data.GetRawConfig().GetAttr("webauthn_platform").ForEachElement(func(_ cty.Value, config cty.Value) (stop bool) {
+		webAuthnSettings := &management.MultiFactorWebAuthnSettings{
+			OverrideRelyingParty:   value.Bool(config.GetAttr("override_relying_party")),
+			RelyingPartyIdentifier: value.String(config.GetAttr("relying_party_identifier")),
+		}
+
+		if webAuthnSettings.String() != "{}" {
+			err = api.Guardian.MultiFactor.WebAuthnPlatform.Update(ctx, webAuthnSettings)
+		}
+
+		return stop
+	})
+
+	return err
+}
+
+func updateDUO(ctx context.Context, data *schema.ResourceData, api *management.Management) error {
+	if !data.HasChange("duo") {
+		return nil
+	}
+
+	enabled := data.Get("duo.0.enabled").(bool)
+	if err := api.Guardian.MultiFactor.DUO.Enable(ctx, enabled); err != nil {
+		return err
+	}
+	if !enabled {
+		return nil
+	}
+
+	var err error
+	data.GetRawConfig().GetAttr("duo").ForEachElement(
+		func(_ cty.Value, config cty.Value) (stop bool) {
+			duoSettings := &management.MultiFactorDUOSettings{
+				SecretKey:      value.String(config.GetAttr("secret_key")),
+				Hostname:       value.String(config.GetAttr("hostname")),
+				IntegrationKey: value.String(config.GetAttr("integration_key")),
+			}
+
+			if duoSettings.String() != "{}" {
+				err = api.Guardian.MultiFactor.DUO.Update(ctx, duoSettings)
+			}
+
+			return stop
+		},
+	)
+
+	return err
+}
+
+func updatePush(ctx context.Context, data *schema.ResourceData, api *management.Management) error {
+	if !data.HasChange("push") {
+		return nil
+	}
+
+	enabled := data.Get("push.0.enabled").(bool)
+	if err := api.Guardian.MultiFactor.Push.Enable(ctx, enabled); err != nil {
+		return err
+	}
+	if !enabled {
+		return nil
+	}
+
+	var err error
+	data.GetRawConfig().GetAttr("push").ForEachElement(func(_ cty.Value, push cty.Value) (stop bool) {
+		mfaProvider := &management.MultiFactorProvider{
+			Provider: value.String(push.GetAttr("provider")),
+		}
+		if err = api.Guardian.MultiFactor.Push.UpdateProvider(ctx, mfaProvider); err != nil {
+			return true
+		}
+
+		if data.HasChange("push.0.custom_app") {
+			if err = updateCustomApp(ctx, push.GetAttr("custom_app"), api); err != nil {
+				return true
+			}
+		}
+
+		if data.HasChange("push.0.direct_apns") {
+			if err = updateDirectAPNS(ctx, push.GetAttr("direct_apns"), api); err != nil {
+				return true
+			}
+		}
+
+		if data.HasChange("push.0.direct_fcm") {
+			if err = updateDirectFCM(ctx, push.GetAttr("direct_fcm"), api); err != nil {
+				return true
+			}
+		}
+
+		if data.HasChange("push.0.amazon_sns") {
+			if err = updateAmazonSNS(ctx, push.GetAttr("amazon_sns"), api); err != nil {
+				return true
+			}
+		}
+
+		return stop
+	})
+	return err
+}
+
+func updateAmazonSNS(ctx context.Context, options cty.Value, api *management.Management) error {
+	var err error
+
+	options.ForEachElement(func(_ cty.Value, config cty.Value) (stop bool) {
+		err = api.Guardian.MultiFactor.Push.UpdateAmazonSNS(
+			ctx,
+			&management.MultiFactorProviderAmazonSNS{
+				AccessKeyID:                value.String(config.GetAttr("aws_access_key_id")),
+				SecretAccessKeyID:          value.String(config.GetAttr("aws_secret_access_key")),
+				Region:                     value.String(config.GetAttr("aws_region")),
+				APNSPlatformApplicationARN: value.String(config.GetAttr("sns_apns_platform_application_arn")),
+				GCMPlatformApplicationARN:  value.String(config.GetAttr("sns_gcm_platform_application_arn")),
+			},
+		)
+
+		return stop
+	})
+
+	return err
+}
+
+func updateCustomApp(ctx context.Context, options cty.Value, api *management.Management) error {
+	var err error
+
+	options.ForEachElement(func(_ cty.Value, config cty.Value) (stop bool) {
+		err = api.Guardian.MultiFactor.Push.UpdateCustomApp(
+			ctx,
+			&management.MultiFactorPushCustomApp{
+				AppName:       value.String(config.GetAttr("app_name")),
+				AppleAppLink:  value.String(config.GetAttr("apple_app_link")),
+				GoogleAppLink: value.String(config.GetAttr("google_app_link")),
+			},
+		)
+
+		return stop
+	})
+
+	return err
+}
+
+func updateDirectAPNS(ctx context.Context, options cty.Value, api *management.Management) error {
+	var err error
+
+	options.ForEachElement(func(_ cty.Value, config cty.Value) (stop bool) {
+		err = api.Guardian.MultiFactor.Push.UpdateDirectAPNS(
+			ctx,
+			&management.MultiFactorPushDirectAPNS{
+				Sandbox:  value.Bool(config.GetAttr("sandbox")),
+				BundleID: value.String(config.GetAttr("bundle_id")),
+				P12:      value.String(config.GetAttr("p12")),
+			},
+		)
+
+		return stop
+	})
+
+	return err
+}
+
+func updateDirectFCM(ctx context.Context, options cty.Value, api *management.Management) error {
+	var err error
+
+	options.ForEachElement(func(_ cty.Value, config cty.Value) (stop bool) {
+		err = api.Guardian.MultiFactor.Push.UpdateDirectFCM(
+			ctx,
+			&management.MultiFactorPushDirectFCM{
+				ServerKey: value.String(config.GetAttr("server_key")),
+			},
+		)
+
+		return stop
+	})
+
+	return err
+}
+
+func updateSettings(ctx context.Context, data *schema.ResourceData, api *managementv3client.Management) error {
+	settings := expandGuardianSettings(data)
+	if settings == nil {
+		return nil
+	}
+
+	_, err := api.Guardian.Set(ctx, settings)
+	return err
+}
+
+func expandGuardianSettings(data *schema.ResourceData) *managementv3.SetGuardianSettingsRequestContent {
+	if !data.HasChange("settings") {
+		return nil
+	}
+
+	var request *managementv3.SetGuardianSettingsRequestContent
+
+	data.GetRawConfig().GetAttr("settings").ForEachElement(func(_ cty.Value, config cty.Value) (stop bool) {
+		request = &managementv3.SetGuardianSettingsRequestContent{}
+
+		if v := value.Bool(config.GetAttr("display_remember_me_checkbox")); v != nil {
+			request.DisplayRememberMeCheckbox = *v
+		}
+
+		if v := value.Bool(config.GetAttr("remember_me_default_value")); v != nil {
+			request.RememberMeDefaultValue = *v
+		}
+
+		if v := value.Int(config.GetAttr("mfa_session_inactivity_timeout")); v != nil {
+			request.MfaSessionInactivityTimeout = *v
+		}
+
+		if v := value.Int(config.GetAttr("mfa_session_overall_timeout")); v != nil {
+			request.MfaSessionOverallTimeout = *v
+		}
+
+		return stop
+	})
+
+	return request
+}
+
+func updatePhoneSettings(ctx context.Context, data *schema.ResourceData, api *managementv3client.Management) error {
+	settings := expandPhoneFactorSettings(data)
+	if settings == nil {
+		return nil
+	}
+
+	_, err := api.Guardian.Factors.Phone.Set(ctx, settings)
+	return err
+}
+
+func expandPhoneFactorSettings(data *schema.ResourceData) *managementv3.SetPhoneFactorSettingsRequestContent {
+	otp := expandOTPSettings(data, "phone_settings")
+	if otp == nil {
+		return nil
+	}
+
+	return &managementv3.SetPhoneFactorSettingsRequestContent{
+		OtpLength:         otp.otpLength,
+		OtpExpirationTime: otp.otpExpirationTime,
+	}
+}
+
+func updateEmailSettings(ctx context.Context, data *schema.ResourceData, api *managementv3client.Management) error {
+	settings := expandEmailFactorSettings(data)
+	if settings == nil {
+		return nil
+	}
+
+	_, err := api.Guardian.Factors.Email.Set(ctx, settings)
+	return err
+}
+
+func expandEmailFactorSettings(data *schema.ResourceData) *managementv3.SetEmailFactorSettingsRequestContent {
+	otp := expandOTPSettings(data, "email_settings")
+	if otp == nil {
+		return nil
+	}
+
+	return &managementv3.SetEmailFactorSettingsRequestContent{
+		OtpLength:         otp.otpLength,
+		OtpExpirationTime: otp.otpExpirationTime,
+	}
+}
+
+type otpSettings struct {
+	otpLength         int
+	otpExpirationTime int
+}
+
+func expandOTPSettings(data *schema.ResourceData, key string) *otpSettings {
+	if !data.HasChange(key) {
+		return nil
+	}
+
+	var settings *otpSettings
+
+	data.GetRawConfig().GetAttr(key).ForEachElement(func(_ cty.Value, config cty.Value) (stop bool) {
+		settings = &otpSettings{}
+
+		if v := value.Int(config.GetAttr("otp_length")); v != nil {
+			settings.otpLength = *v
+		}
+
+		if v := value.Int(config.GetAttr("otp_expiration_time")); v != nil {
+			settings.otpExpirationTime = *v
+		}
+
+		return stop
+	})
+
+	return settings
+}

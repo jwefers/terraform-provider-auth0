@@ -1,0 +1,229 @@
+package organization
+
+import (
+	"github.com/auth0/go-auth0/management"
+	managementv3 "github.com/auth0/go-auth0/v3/management"
+	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/auth0/terraform-provider-auth0/pkg/auth0/commons"
+)
+
+func flattenOrganization(data *schema.ResourceData, organization *management.Organization) error {
+	result := multierror.Append(
+		data.Set("name", organization.GetName()),
+		data.Set("display_name", organization.GetDisplayName()),
+		data.Set("third_party_client_access", organization.GetThirdPartyClientAccess()),
+		data.Set("is_app_entitlement_active", organization.GetIsAppEntitlementActive()),
+		data.Set("branding", flattenOrganizationBranding(organization.GetBranding())),
+		data.Set("metadata", organization.GetMetadata()),
+		data.Set("token_quota", commons.FlattenTokenQuota(organization.GetTokenQuota())),
+	)
+
+	return result.ErrorOrNil()
+}
+
+func flattenOrganizationForDataSource(
+	data *schema.ResourceData,
+	organization *management.Organization,
+	connections []*managementv3.OrganizationAllConnectionPost,
+	members []management.OrganizationMember,
+	clientGrants []*management.ClientGrant,
+) error {
+	result := multierror.Append(
+		flattenOrganization(data, organization),
+		data.Set("connections", flattenOrganizationEnabledConnections(connections)),
+		data.Set("members", flattenOrganizationMembersSlice(members)),
+		data.Set("client_grants", flattenOrganizationClientGrantsSlice(clientGrants)),
+	)
+
+	return result.ErrorOrNil()
+}
+
+func flattenOrganizationBranding(organizationBranding *management.OrganizationBranding) []interface{} {
+	if organizationBranding == nil {
+		return nil
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"logo_url": organizationBranding.GetLogoURL(),
+			"colors":   organizationBranding.GetColors(),
+		},
+	}
+}
+
+func flattenOrganizationConnection(data *schema.ResourceData, orgConn *managementv3.GetOrganizationAllConnectionResponseContent) error {
+	conn := orgConn.GetConnection()
+	result := multierror.Append(
+		data.Set("assign_membership_on_login", orgConn.GetAssignMembershipOnLogin()),
+		data.Set("is_signup_enabled", orgConn.GetIsSignupEnabled()),
+		data.Set("show_as_button", orgConn.GetShowAsButton()),
+		data.Set("is_enabled", orgConn.GetIsEnabled()),
+		data.Set("organization_connection_name", orgConn.GetOrganizationConnectionName()),
+		data.Set("organization_access_level", string(orgConn.GetOrganizationAccessLevel())),
+		data.Set("name", conn.GetName()),
+		data.Set("strategy", conn.GetStrategy()),
+	)
+
+	return result.ErrorOrNil()
+}
+
+func flattenOrganizationConnections(data *schema.ResourceData, connections []*managementv3.OrganizationAllConnectionPost) error {
+	result := multierror.Append(
+		data.Set("organization_id", data.Id()),
+		data.Set("enabled_connections", flattenOrganizationEnabledConnections(connections)),
+	)
+
+	return result.ErrorOrNil()
+}
+
+func flattenOrganizationEnabledConnections(connections []*managementv3.OrganizationAllConnectionPost) []interface{} {
+	if connections == nil {
+		return nil
+	}
+
+	result := make([]interface{}, len(connections))
+	for index, connection := range connections {
+		result[index] = map[string]interface{}{
+			"connection_id":                connection.GetConnectionID(),
+			"assign_membership_on_login":   connection.GetAssignMembershipOnLogin(),
+			"is_signup_enabled":            connection.GetIsSignupEnabled(),
+			"show_as_button":               connection.GetShowAsButton(),
+			"is_enabled":                   connection.GetIsEnabled(),
+			"organization_connection_name": connection.GetOrganizationConnectionName(),
+			"organization_access_level":    string(connection.GetOrganizationAccessLevel()),
+		}
+	}
+
+	return result
+}
+
+func flattenOrganizationMemberRole(data *schema.ResourceData, role management.OrganizationMemberRole) error {
+	result := multierror.Append(
+		data.Set("role_name", role.GetName()),
+		data.Set("role_description", role.GetDescription()),
+	)
+
+	return result.ErrorOrNil()
+}
+
+func flattenOrganizationMembers(data *schema.ResourceData, members []management.OrganizationMember) error {
+	result := multierror.Append(
+		data.Set("organization_id", data.Id()),
+		data.Set("members", flattenOrganizationMembersSlice(members)),
+	)
+
+	return result.ErrorOrNil()
+}
+
+func flattenOrganizationMembersSlice(members []management.OrganizationMember) []string {
+	if len(members) == 0 {
+		return nil
+	}
+	flattenedMembers := make([]string, 0)
+	for _, member := range members {
+		flattenedMembers = append(flattenedMembers, member.GetUserID())
+	}
+
+	return flattenedMembers
+}
+
+func flattenOrganizationClientGrantsSlice(clientGrants []*management.ClientGrant) []string {
+	if len(clientGrants) == 0 {
+		return nil
+	}
+	flattenedClientGrants := make([]string, 0)
+	for _, grant := range clientGrants {
+		flattenedClientGrants = append(flattenedClientGrants, grant.GetID())
+	}
+	return flattenedClientGrants
+}
+
+func flattenOrganizationClient(
+	data *schema.ResourceData,
+	useForMemberAccess bool,
+	clientMetadata *managementv3.OrganizationClientMetadata,
+) error {
+	attributes := flattenOrganizationClientAttributes(useForMemberAccess, clientMetadata)
+
+	var result *multierror.Error
+	for attribute, value := range attributes {
+		result = multierror.Append(result, data.Set(attribute, value))
+	}
+
+	return result.ErrorOrNil()
+}
+
+func flattenOrganizationClientAttributes(
+	useForMemberAccess bool,
+	clientMetadata *managementv3.OrganizationClientMetadata,
+) map[string]interface{} {
+	return map[string]interface{}{
+		"use_for_member_access": useForMemberAccess,
+		"name":                  clientMetadata.GetName(),
+		"app_type":              clientMetadata.GetAppType(),
+		"logo_uri":              clientMetadata.GetLogoURI(),
+		"is_first_party":        clientMetadata.GetIsFirstParty(),
+		"grant_types":           clientMetadata.GetGrantTypes(),
+		"organization_usage":    string(clientMetadata.GetOrganizationUsage()),
+	}
+}
+
+func flattenOrganizationClients(data *schema.ResourceData, organizationClients []*managementv3.OrganizationClient) error {
+	clients := make([]interface{}, 0, len(organizationClients))
+	for _, organizationClient := range organizationClients {
+		clients = append(clients, map[string]interface{}{
+			"client_id":             organizationClient.GetClientID(),
+			"use_for_member_access": organizationClient.GetUseForMemberAccess(),
+		})
+	}
+
+	result := multierror.Append(
+		data.Set("organization_id", data.Id()),
+		data.Set("clients", clients),
+	)
+
+	return result.ErrorOrNil()
+}
+
+func flattenOrganizationClientListItem(organizationClient *managementv3.OrganizationClient) map[string]interface{} {
+	item := flattenOrganizationClientAttributes(organizationClient.GetUseForMemberAccess(), organizationClient.GetClient())
+	item["client_id"] = organizationClient.GetClientID()
+
+	return item
+}
+
+func flattenOrganizationDiscoveryDomain(data *schema.ResourceData, discoveryDomain *management.OrganizationDiscoveryDomain, organizationID string) error {
+	result := multierror.Append(
+		data.Set("organization_id", organizationID),
+		data.Set("id", discoveryDomain.GetID()),
+		data.Set("domain", discoveryDomain.GetDomain()),
+		data.Set("status", discoveryDomain.GetStatus()),
+		data.Set("verification_txt", discoveryDomain.GetVerificationTXT()),
+		data.Set("verification_host", discoveryDomain.GetVerificationHost()),
+		data.Set("use_for_organization_discovery", discoveryDomain.GetUseForOrganizationDiscovery()),
+	)
+
+	return result.ErrorOrNil()
+}
+
+func flattenOrganizationDiscoveryDomains(data *schema.ResourceData, domains []*management.OrganizationDiscoveryDomain) error {
+	if len(domains) == 0 {
+		return data.Set("discovery_domains", []interface{}{})
+	}
+
+	var enabledDomains []interface{}
+	for _, domain := range domains {
+		enabledDomains = append(enabledDomains, map[string]interface{}{
+			"id":                             domain.GetID(),
+			"domain":                         domain.GetDomain(),
+			"status":                         domain.GetStatus(),
+			"verification_txt":               domain.GetVerificationTXT(),
+			"verification_host":              domain.GetVerificationHost(),
+			"use_for_organization_discovery": domain.GetUseForOrganizationDiscovery(),
+		})
+	}
+
+	return data.Set("discovery_domains", enabledDomains)
+}

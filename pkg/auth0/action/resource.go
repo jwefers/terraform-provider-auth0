@@ -1,0 +1,386 @@
+package action
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/auth0/go-auth0/management"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/auth0/terraform-provider-auth0/pkg/config"
+	internalError "github.com/auth0/terraform-provider-auth0/pkg/error"
+)
+
+// NewResource will return a new auth0_action resource.
+func NewResource() *schema.Resource {
+	return &schema.Resource{
+		CreateContext: createAction,
+		ReadContext:   readAction,
+		UpdateContext: updateAction,
+		DeleteContext: deleteAction,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(6 * time.Minute),
+		},
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
+		CustomizeDiff: customdiff.All(
+			// When the action is in status="failed", force a replacement so the
+			// next apply re-triggers the build rather than silently leaving a
+			// broken action in place. Gated on deploy=true — a non-deployed draft
+			// action in "failed" state does not need an automatic replace.
+			//
+			// SetNewComputed creates a diff entry for "status" (old → computed),
+			// which is required before ForceNew can be called on a Computed-only
+			// attribute. Without it, ForceNew errors with "No changes for status".
+			func(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+				if d.Get("deploy").(bool) && d.Get("status").(string) == management.ActionStatusFailed {
+					if err := d.SetNewComputed("status"); err != nil {
+						return err
+					}
+					return d.ForceNew("status")
+				}
+				return nil
+			},
+		),
+		Description: "Actions are secure, tenant-specific, versioned functions written in Node.js " +
+			"that execute at certain points during the Auth0 runtime. Actions are used to customize " +
+			"and extend Auth0's capabilities with custom logic.",
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The name of the action.",
+			},
+			"supported_triggers": {
+				Type:     schema.TypeList,
+				Required: true,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The trigger ID.",
+						},
+						"version": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The trigger version. This regulates which `runtime` versions are supported.",
+						},
+					},
+				},
+				Description: "List of triggers that this action supports. " +
+					"At this time, an action can only target a single trigger at a time. " +
+					"Read [Retrieving the set of triggers available within actions](https://registry.terraform.io/providers/auth0/auth0/latest/docs/guides/action_triggers) " +
+					"to retrieve the latest trigger versions supported.",
+			},
+			"code": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The source code of the action.",
+			},
+			"dependencies": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Description: "List of third party npm modules, and their versions, that this action depends on.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Dependency name, e.g. `lodash`.",
+						},
+						"version": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Dependency version, e.g. `latest` or `4.17.21`.",
+						},
+					},
+				},
+			},
+			"runtime": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"node12",
+					"node16",
+					"node18",
+					"node22",
+				}, false),
+				Description: "The Node runtime. Possible values are: `node12`, `node16` (not recommended), `node18`, `node22`",
+			},
+			"secrets": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				ConflictsWith: []string{"secrets_wo"},
+				Description: "List of secrets that are included in an action or a version of an action. " +
+					"Partial management of secrets is not supported. If the secret block is edited, the whole object is " +
+					"re-provisioned. " +
+					"**Note:** Secret values are persisted in Terraform state as plain text. For better security, " +
+					"consider using `secrets_wo` instead, which supports write-only values and ephemeral variables.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Secret name.",
+						},
+						"value": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Sensitive:   true,
+							Description: "Secret value.",
+						},
+					},
+				},
+			},
+			"secrets_wo": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				ConflictsWith: []string{"secrets"},
+				RequiredWith:  []string{"secrets_wo_version"},
+				Description: "List of secrets for the action (write-only). " +
+					"Secret values are only available during resource creation and update, and are **not** stored in Terraform state. " +
+					"Adding, renaming, or removing an entry is applied automatically; to change only the value of an existing " +
+					"secret, bump the `secrets_wo_version` attribute. " +
+					"To remove all secrets, delete the `secrets_wo` blocks together with the `secrets_wo_version` attribute. " +
+					"This is an ordered list, so reordering the blocks is treated as a change. " +
+					"Conflicts with `secrets`.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Secret name.",
+						},
+						"value": {
+							Type:        schema.TypeString,
+							Required:    true,
+							WriteOnly:   true,
+							Sensitive:   true,
+							Description: "Secret value (write-only). This value is never stored in Terraform state.",
+						},
+					},
+				},
+			},
+			"secrets_wo_version": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"secrets_wo"},
+				Description: "Version number for `secrets_wo` changes. " +
+					"Adding, renaming, or removing a `secrets_wo` entry is detected automatically, but changing only the " +
+					"**value** of an existing secret is not (write-only values are not tracked in state). " +
+					"Increment this value to push value-only changes to the API.",
+			},
+			"deploy": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				Description: "Deploying an action will create a new immutable" +
+					" version of the action. If the action is currently bound" +
+					" to a trigger, then the system will begin executing the " +
+					"newly deployed version of the action immediately.",
+			},
+			"version_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Version ID of the action. This value is available if `deploy` is set to true.",
+			},
+			"status": {
+				Type:     schema.TypeString,
+				Computed: true,
+				Description: "The build status of the action. Possible values: `built`, `failed`, `building`, " +
+					"`pending`, `retrying`. If the action is in `failed` state, the next `terraform plan` " +
+					"will show a replacement to re-trigger the build.",
+			},
+			"modules": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Description: "List of action modules and their versions that this action depends on.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"module_id": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The unique ID of the module.",
+						},
+						"module_version_id": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The ID of the specific module version to use.",
+						},
+						"module_name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The name of the module.",
+						},
+						"module_version_number": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "The version number of the module.",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func createAction(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	api := meta.(*config.Config).GetAPI()
+
+	action := expandAction(data)
+
+	if err := api.Action.Create(ctx, action); err != nil {
+		return diag.FromErr(err)
+	}
+
+	data.SetId(action.GetID())
+
+	if err := deployAction(ctx, data, meta); err != nil {
+		return diag.FromErr(err)
+	}
+
+	return readAction(ctx, data, meta)
+}
+
+func readAction(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	api := meta.(*config.Config).GetAPI()
+
+	action, err := api.Action.Read(ctx, data.Id())
+	if err != nil {
+		return internalError.HandleReadAPIError("auth0_action", data, err)
+	}
+
+	return diag.FromErr(flattenAction(data, action))
+}
+
+func updateAction(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	api := meta.(*config.Config).GetAPI()
+
+	diagnostics := preventErasingUnmanagedSecrets(ctx, data, api)
+	if diagnostics.HasError() {
+		return diagnostics
+	}
+
+	action := expandAction(data)
+
+	if err := api.Action.Update(ctx, data.Id(), action); err != nil {
+		return diag.FromErr(internalError.HandleAPIError(data, err))
+	}
+
+	if err := deployAction(ctx, data, meta); err != nil {
+		return diag.FromErr(err)
+	}
+
+	return readAction(ctx, data, meta)
+}
+
+func deleteAction(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	api := meta.(*config.Config).GetAPI()
+
+	if err := api.Action.Delete(ctx, data.Id()); err != nil {
+		return diag.FromErr(internalError.HandleAPIError(data, err))
+	}
+
+	return nil
+}
+
+func deployAction(ctx context.Context, data *schema.ResourceData, meta interface{}) error {
+	deployExists := data.Get("deploy").(bool)
+	if !deployExists {
+		return nil
+	}
+
+	api := meta.(*config.Config).GetAPI()
+
+	// Track how many times we have re-triggered the build due to a transient
+	// module-dependency failure. Capped at maxModuleBuildRetries so that a
+	// genuine code error does not loop indefinitely within the timeout window.
+	const maxModuleBuildRetries = 3
+	moduleBuildRetries := 0
+
+	err := retry.RetryContext(ctx, data.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		action, err := api.Action.Read(ctx, data.Id())
+		if err != nil {
+			return retry.NonRetryableError(err)
+		}
+
+		if action.GetStatus() == management.ActionStatusFailed {
+			// When an action references modules, the build failure may be
+			// transient: the module's bundle was not yet available in the build
+			// cache when the action's build started (race between module publish
+			// and action create/update running in parallel). Re-trigger the
+			// build up to maxModuleBuildRetries times before giving up.
+			modulesSet := data.Get("modules").(*schema.Set)
+			if modulesSet.Len() > 0 && moduleBuildRetries < maxModuleBuildRetries {
+				moduleBuildRetries++
+				rebuildAction := expandAction(data)
+				if err := api.Action.Update(ctx, data.Id(), rebuildAction); err != nil {
+					return retry.NonRetryableError(err)
+				}
+				return retry.RetryableError(
+					fmt.Errorf(
+						"action %q build failed (attempt %d/%d), retrying — module dependency may not yet be ready",
+						action.GetName(), moduleBuildRetries, maxModuleBuildRetries,
+					),
+				)
+			}
+			return retry.NonRetryableError(
+				fmt.Errorf("action %q failed to build, check the Auth0 UI for errors", action.GetName()),
+			)
+		}
+
+		if action.GetStatus() != management.ActionStatusBuilt {
+			return retry.RetryableError(
+				fmt.Errorf("expected action %q status %q to equal %q", action.GetName(), action.GetStatus(), "built"),
+			)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("action %q never reached built state: %w", data.Get("name").(string), err)
+	}
+
+	actionVersion, err := api.Action.Deploy(ctx, data.Id())
+	if err != nil {
+		return err
+	}
+
+	if err := waitForActionDeployed(ctx, data, api); err != nil {
+		return err
+	}
+
+	return data.Set("version_id", actionVersion.GetID())
+}
+
+func waitForActionDeployed(ctx context.Context, data *schema.ResourceData, api *management.Management) error {
+	err := retry.RetryContext(ctx, data.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		action, err := api.Action.Read(ctx, data.Id())
+		if err != nil {
+			return retry.NonRetryableError(err)
+		}
+
+		if action.GetDeployedVersion() == nil || !action.GetDeployedVersion().Deployed {
+			return retry.RetryableError(
+				fmt.Errorf("action %q not deployed yet", action.GetName()),
+			)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("action %q deploy never completed: %w", data.Get("name").(string), err)
+	}
+
+	return nil
+}

@@ -1,0 +1,45 @@
+package riskassessment_test
+
+import (
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+
+	"github.com/auth0/terraform-provider-auth0/pkg/acctest"
+)
+
+const testAccWithFalse = `resource "auth0_risk_assessments" "my_risk_assessments_settings" { enabled = false}`
+const testAccWithTrue = `resource "auth0_risk_assessments" "my_risk_assessments_settings" { enabled = true}`
+
+func TestAccRiskAssessment(t *testing.T) {
+	acctest.Test(t, resource.TestCase{
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWithFalse,
+				Check:  resource.TestCheckResourceAttr("auth0_risk_assessments.my_risk_assessments_settings", "enabled", "false"),
+			},
+			{
+				Config: testAccWithTrue,
+				Check:  resource.TestCheckResourceAttr("auth0_risk_assessments.my_risk_assessments_settings", "enabled", "true"),
+			},
+		},
+	})
+}
+
+const testAccRiskAssessmentInsufficient = `
+resource "auth0_risk_assessments" "my_risk_assessments_settings" {
+  enabled = true
+}`
+
+// TestAccRiskAssessmentInsufficientEntitlement asserts that when the tenant
+// lacks the Adaptive MFA entitlement, the 403 response is non-fatal: apply
+// succeeds with a warning rather than returning an error.
+func TestAccRiskAssessmentInsufficientEntitlement(t *testing.T) {
+	acctest.Test(t, resource.TestCase{
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRiskAssessmentInsufficient,
+			},
+		},
+	})
+}
