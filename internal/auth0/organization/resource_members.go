@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/internal/config"
-	internalError "github.com/auth0/terraform-provider-auth0/internal/error"
-	"github.com/auth0/terraform-provider-auth0/internal/value"
+	"github.com/auth0/terraform-provider-auth0/pkg/config"
+	internalError "github.com/auth0/terraform-provider-auth0/pkg/error"
+	"github.com/auth0/terraform-provider-auth0/pkg/value"
 )
 
 // NewMembersResource will return a new auth0_organization_members (1:many) resource.

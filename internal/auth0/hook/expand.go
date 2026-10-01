@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/auth0/terraform-provider-auth0/internal/value"
+	"github.com/auth0/terraform-provider-auth0/pkg/value"
 )
 
 func expandHook(data *schema.ResourceData) *management.Hook {

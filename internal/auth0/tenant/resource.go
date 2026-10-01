@@ -16,10 +16,10 @@ import (
 
 	"github.com/auth0/go-auth0/management"
 
-	"github.com/auth0/terraform-provider-auth0/internal/auth0/commons"
-	"github.com/auth0/terraform-provider-auth0/internal/config"
-	internalValidation "github.com/auth0/terraform-provider-auth0/internal/validation"
-	"github.com/auth0/terraform-provider-auth0/internal/value"
+	"github.com/auth0/terraform-provider-auth0/pkg/auth0/commons"
+	"github.com/auth0/terraform-provider-auth0/pkg/config"
+	internalValidation "github.com/auth0/terraform-provider-auth0/pkg/validation"
+	"github.com/auth0/terraform-provider-auth0/pkg/value"
 )
 
 // These defaults are used only in flatten, but not as schema default, so that:

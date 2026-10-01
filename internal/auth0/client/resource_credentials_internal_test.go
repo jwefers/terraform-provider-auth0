@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/terraform-provider-auth0/internal/value"
+	"github.com/auth0/terraform-provider-auth0/pkg/value"
 )
 
 // generateTestRSAPEMs returns the same RSA public key encoded in the three PEM

@@ -12,10 +12,10 @@ import (
 	"github.com/auth0/go-auth0"
 	"github.com/auth0/go-auth0/management"
 
-	"github.com/auth0/terraform-provider-auth0/internal/config"
-	internalError "github.com/auth0/terraform-provider-auth0/internal/error"
-	"github.com/auth0/terraform-provider-auth0/internal/value"
-	"github.com/auth0/terraform-provider-auth0/internal/wait"
+	"github.com/auth0/terraform-provider-auth0/pkg/config"
+	internalError "github.com/auth0/terraform-provider-auth0/pkg/error"
+	"github.com/auth0/terraform-provider-auth0/pkg/value"
+	"github.com/auth0/terraform-provider-auth0/pkg/wait"
 )
 
 // NewEncryptionKeyManagerResource will return a new auth0_encryption_key_manager resource.

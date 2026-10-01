@@ -14,10 +14,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/auth0/terraform-provider-auth0/internal/auth0/commons"
-	"github.com/auth0/terraform-provider-auth0/internal/config"
-	internalError "github.com/auth0/terraform-provider-auth0/internal/error"
-	internalValidation "github.com/auth0/terraform-provider-auth0/internal/validation"
+	"github.com/auth0/terraform-provider-auth0/pkg/auth0/commons"
+	"github.com/auth0/terraform-provider-auth0/pkg/config"
+	internalError "github.com/auth0/terraform-provider-auth0/pkg/error"
+	internalValidation "github.com/auth0/terraform-provider-auth0/pkg/validation"
 )
 
 // ValidAppTypes contains all valid values for client app_type.

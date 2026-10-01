@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/internal/config"
-	internalError "github.com/auth0/terraform-provider-auth0/internal/error"
+	"github.com/auth0/terraform-provider-auth0/pkg/config"
+	internalError "github.com/auth0/terraform-provider-auth0/pkg/error"
 )
 
 // NewResource will return a new auth0_connection resource.

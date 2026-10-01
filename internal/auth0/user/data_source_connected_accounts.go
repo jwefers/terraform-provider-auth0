@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/internal/config"
-	"github.com/auth0/terraform-provider-auth0/internal/value"
+	"github.com/auth0/terraform-provider-auth0/pkg/config"
+	"github.com/auth0/terraform-provider-auth0/pkg/value"
 )
 
 // NewConnectedAccountsDataSource will return a new auth0_user_connected_accounts data source.

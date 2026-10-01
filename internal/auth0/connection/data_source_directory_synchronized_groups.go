@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/internal/config"
-	internalSchema "github.com/auth0/terraform-provider-auth0/internal/schema"
+	"github.com/auth0/terraform-provider-auth0/pkg/config"
+	internalSchema "github.com/auth0/terraform-provider-auth0/pkg/schema"
 )
 
 // NewDirectorySynchronizedGroupsDataSource will return a new auth0_connection_directory_synchronized_groups data source.

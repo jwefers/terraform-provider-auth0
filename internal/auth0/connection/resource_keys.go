@@ -7,10 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	internalSchema "github.com/auth0/terraform-provider-auth0/internal/schema"
+	internalSchema "github.com/auth0/terraform-provider-auth0/pkg/schema"
 
-	"github.com/auth0/terraform-provider-auth0/internal/config"
-	internalError "github.com/auth0/terraform-provider-auth0/internal/error"
+	"github.com/auth0/terraform-provider-auth0/pkg/config"
+	internalError "github.com/auth0/terraform-provider-auth0/pkg/error"
 )
 
 // NewKeysResource will return a new auth0_connection_keys resource.

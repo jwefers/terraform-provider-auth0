@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/terraform-provider-auth0/internal/acctest"
+	"github.com/auth0/terraform-provider-auth0/pkg/acctest"
 )
 
 const testAccResourceServerConfigEmpty = `

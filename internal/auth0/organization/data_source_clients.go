@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/internal/config"
-	internalSchema "github.com/auth0/terraform-provider-auth0/internal/schema"
+	"github.com/auth0/terraform-provider-auth0/pkg/config"
+	internalSchema "github.com/auth0/terraform-provider-auth0/pkg/schema"
 )
 
 // NewClientsDataSource will return a new auth0_organization_clients data source (EA only).

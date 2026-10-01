@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/terraform-provider-auth0/internal/config"
+	"github.com/auth0/terraform-provider-auth0/pkg/config"
 )
 
 func groupIDsAttribute(groupIDs ...string) []interface{} {

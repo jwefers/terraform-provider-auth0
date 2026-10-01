@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/internal/config"
+	"github.com/auth0/terraform-provider-auth0/pkg/config"
 )
 
 // NewDataSource returns a new auth0_network_acl_key data source.
