@@ -4,13 +4,14 @@ import (
 	"context"
 
 	"github.com/auth0/go-auth0/management"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/internal/config"
-	apierr "github.com/auth0/terraform-provider-auth0/internal/error"
-	"github.com/auth0/terraform-provider-auth0/internal/value"
+	"github.com/auth0/terraform-provider-auth0/pkg/config"
+	apierr "github.com/auth0/terraform-provider-auth0/pkg/error"
+	"github.com/auth0/terraform-provider-auth0/pkg/value"
 )
 
 // NewResource will return a new auth0_risk_assessments resource.

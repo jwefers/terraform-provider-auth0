@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
-	"github.com/auth0/terraform-provider-auth0/internal/acctest"
+	"github.com/auth0/terraform-provider-auth0/pkg/acctest"
 )
 
 // A 32-byte cryptographically random key encoded as standard base64.

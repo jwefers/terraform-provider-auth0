@@ -29,7 +29,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/meta"
 	"github.com/zalando/go-keyring"
 
-	"github.com/auth0/terraform-provider-auth0/internal/mutex"
+	"github.com/auth0/terraform-provider-auth0/pkg/mutex"
 )
 
 const providerName = "Terraform-Provider-Auth0"    // #nosec G101

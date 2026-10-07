@@ -3,7 +3,7 @@ package branding
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	internalSchema "github.com/auth0/terraform-provider-auth0/internal/schema"
+	internalSchema "github.com/auth0/terraform-provider-auth0/pkg/schema"
 )
 
 // NewThemeDataSource will return a new auth0_branding_theme data source.

@@ -4,7 +4,7 @@ import (
 	"github.com/auth0/go-auth0/management"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/internal/value"
+	"github.com/auth0/terraform-provider-auth0/pkg/value"
 )
 
 func expandTokenExchangeProfiles(data *schema.ResourceData) *management.TokenExchangeProfile {

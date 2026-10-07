@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/internal/auth0/commons"
-	"github.com/auth0/terraform-provider-auth0/internal/config"
+	"github.com/auth0/terraform-provider-auth0/pkg/auth0/commons"
+	"github.com/auth0/terraform-provider-auth0/pkg/config"
 )
 
 // NewOrganizationsDataSource will return a new auth0_user_organizations data source (EA only).

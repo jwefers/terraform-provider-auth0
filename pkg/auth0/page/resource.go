@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/auth0/terraform-provider-auth0/internal/config"
-	internalValidation "github.com/auth0/terraform-provider-auth0/internal/validation"
+	"github.com/auth0/terraform-provider-auth0/pkg/config"
+	internalValidation "github.com/auth0/terraform-provider-auth0/pkg/validation"
 )
 
 // NewResource will return a new auth0_pages resource.
